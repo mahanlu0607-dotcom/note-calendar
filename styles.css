@@ -1,0 +1,533 @@
+/* 笔记日历 Note Calendar */
+
+.note-calendar-view {
+	--nc-font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+	--nc-text: var(--text-normal, #1d1d1f);
+	--nc-muted: var(--text-muted, #86868b);
+	--nc-border: #e8e8ec;
+	--nc-red: #ff3b30;
+	--nc-shadow: 0 0 25px 0 rgba(231, 231, 231, 0.31);
+	font-family: var(--nc-font);
+	color: var(--nc-text);
+	user-select: none;
+	padding: 10px;
+	box-sizing: border-box;
+	overflow-y: auto;
+	/* 窄屏最小宽度限制：面板窄到这就窄不下去了 */
+	min-width: 280px;
+}
+
+.note-calendar-view .nc-frame {
+	background: var(--background-primary, #fff);
+	border-radius: 12px;
+	box-shadow: var(--nc-shadow);
+	padding: 12px;
+}
+
+/* 顶栏 */
+.note-calendar-view .nc-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 2px 2px 10px;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.note-calendar-view .nc-header-left {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.note-calendar-view .nc-title {
+	font-size: 18px;
+	font-weight: 500;
+	white-space: nowrap;
+	flex-shrink: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.note-calendar-view .nc-navbtn {
+	background: transparent;
+	border: none;
+	font-size: 18px;
+	color: var(--nc-text);
+	cursor: pointer;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	font-family: inherit;
+	line-height: 1;
+	padding: 0;
+	flex-shrink: 0;
+}
+
+.note-calendar-view .nc-navbtn:hover {
+	background: var(--background-secondary, #ececf0);
+}
+
+.note-calendar-view .nc-today {
+	background: #fff;
+	border: none;
+	border-radius: 6px;
+	font-size: 12px;
+	color: var(--nc-text);
+	padding: 3px 10px;
+	cursor: pointer;
+	font-family: inherit;
+	box-shadow: 0 0 25px 0 rgba(231, 231, 231, 0.4);
+	flex-shrink: 0;
+}
+
+/* 周月年切换胶囊 */
+.note-calendar-view .nc-segcapsule {
+	display: flex;
+	background: #fff;
+	border-radius: 22px;
+	padding: 3px;
+	box-shadow: 0 0 25px 0 rgba(231, 231, 231, 0.31);
+	flex-shrink: 0;
+}
+
+.note-calendar-view .nc-seg {
+	background: transparent;
+	border: none;
+	font-size: 13px;
+	color: var(--nc-text);
+	padding: 4px 16px;
+	border-radius: 16px;
+	cursor: pointer;
+	font-family: inherit;
+}
+
+.note-calendar-view .nc-seg-on {
+	background: #f2f2f2;
+}
+
+/* 通用网格（日期格之间 1px 浅灰分隔） */
+.note-calendar-view .nc-mgrid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 1px;
+	background: var(--nc-border);
+	user-select: none;
+}
+
+/* 列头独立一行（无 gap 灰竖线） */
+.note-calendar-view .nc-mwdrow {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 1px;
+	background: transparent;
+	margin-bottom: 1px;
+}
+
+.note-calendar-view .nc-mwdrow .nc-mwd {
+	background: #fff;
+	padding: 4px 7px;
+	font-size: 11px;
+	color: var(--nc-muted);
+	text-align: left;
+}
+
+/* ===== 月视图 ===== */
+.note-calendar-view .nc-mtool {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+
+.note-calendar-view .nc-slider {
+	width: 100px;
+	accent-color: #007aff;
+}
+
+.note-calendar-view .nc-mcell {
+	background: #fff;
+	padding: 4px 6px;
+	height: 86px;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	overflow: hidden;
+	position: relative;
+	transition: background 0.15s;
+	box-sizing: border-box;
+}
+
+.note-calendar-view .nc-mcell-adj {
+	background: #f7f7f8;
+}
+
+.note-calendar-view .nc-mcell.nc-today {
+	background: #fff7f7;
+}
+
+.note-calendar-view .nc-cards {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	overflow: hidden;
+	min-height: 0;
+}
+
+/* 拖动接收时高亮 */
+.note-calendar-view .nc-mcell.nc-drop-target {
+	background: #eaf3de !important;
+	box-shadow: inset 0 0 0 2px #3b6d11;
+}
+
+.note-calendar-view .nc-mdate {
+	font-size: 12px;
+	color: var(--nc-text);
+	text-align: left;
+	flex-shrink: 0;
+}
+
+.note-calendar-view .nc-mdate-today {
+	font-weight: 500;
+	color: var(--nc-red);
+}
+
+/* ===== 卡片（紧凑：3 个能放进 54px） ===== */
+.note-calendar-view .nc-card {
+	display: block;
+	font-size: 10px;
+	line-height: 1.3;
+	padding: 0 7px;
+	border-radius: 4px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 100%;
+	box-sizing: border-box;
+	flex-shrink: 0;
+	cursor: grab;
+	user-select: none;
+}
+
+.note-calendar-view .nc-card:hover {
+	filter: brightness(0.92);
+}
+
+.note-calendar-view .nc-card-dragging {
+	opacity: 0.4;
+	cursor: grabbing;
+}
+
+.note-calendar-view .nc-card-more {
+	background: transparent !important;
+	color: var(--nc-muted) !important;
+	font-size: 10px;
+	line-height: 1.2;
+	text-align: left;
+	cursor: default;
+	padding: 0 4px;
+}
+
+.note-calendar-view .nc-card-more:hover {
+	filter: none;
+}
+
+/* ===== 年视图（响应式：2 列 ↔ 3 列丝滑过渡） ===== */
+.note-calendar-view .nc-ygrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 16px 12px;
+}
+
+.note-calendar-view .nc-ytop {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+	font-size: 11px;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.note-calendar-view .nc-ymo {
+	cursor: pointer;
+}
+
+.note-calendar-view .nc-ymo-title {
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--nc-text);
+	margin-bottom: 4px;
+}
+
+.note-calendar-view .nc-ymo-title-has {
+	color: var(--nc-red);
+}
+
+.note-calendar-view .nc-ycal {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 1px;
+	user-select: none;
+}
+
+.note-calendar-view .nc-ywd {
+	padding: 1px 0 3px;
+	font-size: 10px;
+	color: #c7c7cc;
+	text-align: center;
+}
+
+.note-calendar-view .nc-ycell {
+	font-size: 11px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	line-height: 1;
+	padding: 0;
+}
+
+.note-calendar-view .nc-ycell-inner {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.note-calendar-view .nc-yadj {
+	color: var(--nc-muted);
+	opacity: 0.4;
+}
+
+.note-calendar-view .nc-yday {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	line-height: 18px;
+	text-align: center;
+	color: var(--nc-text);
+	font-size: 10px;
+	font-weight: 300;
+}
+
+.note-calendar-view .nc-yday-today {
+	border-radius: 50%;
+	background: var(--nc-red);
+	color: #fff;
+	font-weight: 500;
+}
+
+.note-calendar-view .nc-yline {
+	display: block;
+	width: 55%;
+	height: 1.5px;
+	background: var(--nc-red);
+	border-radius: 0;
+	/* 数字在 18px 容器内垂直居中，底部有 ~4px 空隙，用负 margin 拉近 */
+	margin-top: -4px;
+}
+
+/* 年份月份展开面板 */
+.note-calendar-view .nc-ympanel {
+	margin-top: 12px;
+	border-top: 1px solid var(--nc-border);
+	padding-top: 12px;
+}
+
+.note-calendar-view .nc-chips {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-bottom: 10px;
+}
+
+.note-calendar-view .nc-chip {
+	background: var(--background-secondary, #f0f0f3);
+	border: none;
+	font-size: 12px;
+	color: var(--nc-text);
+	padding: 3px 12px;
+	border-radius: 12px;
+	cursor: pointer;
+	font-family: inherit;
+}
+
+.note-calendar-view .nc-chip-on {
+	background: #fff;
+	border: 0.5px solid #c7c7cc;
+}
+
+.note-calendar-view .nc-ympanel-title {
+	font-size: 13px;
+	font-weight: 500;
+	margin-bottom: 8px;
+}
+
+.note-calendar-view .nc-ympanel-list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 6px 16px;
+}
+
+.note-calendar-view .nc-ympanel-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	cursor: pointer;
+	min-width: 0;
+}
+
+.note-calendar-view .nc-ympanel-row:hover .nc-ympanel-name {
+	text-decoration: underline;
+}
+
+.note-calendar-view .nc-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 3px;
+	flex-shrink: 0;
+}
+
+.note-calendar-view .nc-ympanel-date {
+	color: var(--nc-muted);
+	font-size: 11px;
+	width: 28px;
+	flex-shrink: 0;
+}
+
+.note-calendar-view .nc-ympanel-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.note-calendar-view .nc-muted {
+	font-size: 12px;
+	color: var(--nc-muted);
+}
+
+/* 修改日期 Modal */
+.note-calendar-view ~ .modal .nc-modal-buttons {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 8px;
+}
+.nc-modal-buttons {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 8px;
+	flex-wrap: wrap;
+}
+.nc-modal-buttons button {
+	padding: 4px 12px;
+	border-radius: 6px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+	color: var(--text-normal);
+	cursor: pointer;
+}
+.nc-modal-buttons button.mod-cta {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border-color: var(--interactive-accent);
+}
+
+/* 极窄屏：年视图强制 2 列、月份列表 1 列 */
+@media (max-width: 420px) {
+	.note-calendar-view .nc-ympanel-list {
+		grid-template-columns: 1fr;
+	}
+	.note-calendar-view .nc-title {
+		font-size: 16px;
+	}
+	.note-calendar-view .nc-seg {
+		padding: 4px 10px;
+	}
+}
+
+/* ===== 移动端适配（Platform.isMobile 自动加 nc-mobile class） ===== */
+.note-calendar-view.nc-mobile {
+	padding: 6px;
+	min-width: 0;
+}
+
+.note-calendar-view.nc-mobile .nc-frame {
+	padding: 8px;
+	border-radius: 10px;
+}
+
+.note-calendar-view.nc-mobile .nc-navbtn {
+	width: 38px;
+	height: 38px;
+	font-size: 20px;
+}
+
+.note-calendar-view.nc-mobile .nc-today {
+	padding: 9px 16px;
+	font-size: 13px;
+}
+
+.note-calendar-view.nc-mobile .nc-seg {
+	padding: 9px 24px;
+	font-size: 14px;
+}
+
+.note-calendar-view.nc-mobile .nc-header {
+	padding-bottom: 8px;
+}
+
+/* 手机端格子略矮、卡片字号可读、padding 收窄 */
+.note-calendar-view.nc-mobile .nc-mcell {
+	padding: 3px 4px;
+	gap: 1px;
+}
+
+.note-calendar-view.nc-mobile .nc-card {
+	font-size: 11px;
+	line-height: 1.3;
+	padding: 1px 4px;
+}
+
+.note-calendar-view.nc-mobile .nc-mdate {
+	font-size: 11px;
+}
+
+.note-calendar-view.nc-mobile .nc-ympanel-list {
+	grid-template-columns: 1fr;
+}
+
+.note-calendar-view.nc-mobile .nc-ygrid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px 8px;
+}
+
+.note-calendar-view.nc-mobile .nc-mwd {
+	padding: 3px 4px;
+	font-size: 10px;
+}
+
+.note-calendar-view.nc-mobile .nc-slider {
+	width: 90px;
+	height: 30px;
+}
+
+/* 移动端 Modal 按钮更大更好点 */
+.note-calendar-view.nc-mobile .nc-modal-buttons button,
+.nc-modal-buttons button {
+	padding: 10px 18px;
+	font-size: 14px;
+	border-radius: 8px;
+	min-height: 40px;
+}
+
+/* 设置页颜色行 */
+.note-calendar-color-row .setting-item-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
