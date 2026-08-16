@@ -1,0 +1,10 @@
+{
+	"id": "note-calendar",
+	"name": "笔记日历 Note Calendar",
+	"version": "0.2.0",
+	"minAppVersion": "1.4.0",
+	"description": "在日历上按创建日期展示笔记，支持月/年视图、文件夹配色与关系图谱同步、点击跳转、长按/右键操作、拖动或选日期移动笔记，适配 Mac 与 iPhone。",
+	"author": "han",
+	"authorUrl": "",
+	"isDesktopOnly": false
+}
